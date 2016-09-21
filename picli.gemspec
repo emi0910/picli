@@ -29,6 +29,9 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "picasa"
   spec.add_runtime_dependency "thor", ">= 0.19.1"
+  spec.add_runtime_dependency "google-api-client", "0.9.pre4"
+  spec.add_runtime_dependency "googleauth"
+  spec.add_runtime_dependency "launchy"
 
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"

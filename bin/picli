@@ -27,6 +27,7 @@ require "rubygems"
 require "picasa"
 require "thor"
 require "picli"
+require "open-uri"
 require "pp"
 
 module Picasa
@@ -94,6 +95,7 @@ class PicliCLI < Thor
   register_option :search,     :desc => "Search items by complex expression"
   register_option :dry_run,    :desc => "Perform a trial run with no changes made", :type => :boolean
   register_option :page,       :desc => "Start page number"
+  register_option :album,      :desc => "Specify album title"
 
   ################################################################
   # command name mappings
@@ -249,6 +251,32 @@ class PicliCLI < Thor
   end
 
   ################################################################
+  # Command: upload
+  ################################################################
+  desc "upload", "Upload photos in sepecified directory"
+
+  named_option :album, :title
+
+  def upload(file_path)
+    open(file_path) do |data|
+      photo = @client.photo.create(album_name_to_id(options[:album] || "nomnichi"), binary: data.read, content_type: "image/jpeg", title: (options[:title] || "No Title"))
+      puts photo.id
+    end
+  end
+
+  ################################################################
+  # Command: bupload
+  ################################################################
+  desc "upload", "Upload photos in sepecified directory"
+
+  named_option :album, :title
+
+  def bupload(binary)
+    photo = @client.photo.create(album_name_to_id(options[:album] || "nomnichi"), binary: binary, content_type: "image/jpeg", title: (options[:title] || "No Title"))
+    puts photo.id
+  end
+
+  ################################################################
   # Command: recent
   ################################################################
   desc "recent", "Show recent updated photos"
@@ -336,6 +364,13 @@ class PicliCLI < Thor
     puts "Published: #{a.published}"
   end
 
+  def album_name_to_id(album_name)
+    album = @client.album.list.entries.find do |a|
+      a.title == album_name
+    end
+    return album && album.id
+  end
+
   def exit_on_error(&block)
     begin
       yield if block_given?
@@ -348,8 +383,7 @@ class PicliCLI < Thor
   attr_reader :builder, :config, :calendar
 
   def setup_global_options
-    token = "xxxxxxxxxxxxxx"
-    @client = ::Picasa::Client.new(user_id: "xxxxxxxxxxx@gmail.com", access_token: token)
+    @client = Picli::PicasaClient.new(self).client
   end
 
   def load_plugins
